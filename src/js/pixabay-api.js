@@ -1,12 +1,12 @@
 import axios from "axios";
 
 const API_KEY = "54627953-91354900f2659ddc705c1dc29";
+const BASE_URL = "https://pixabay.com/api/";
 
-let pageCount = 1;
 let currentQuery = "";
 
-export async function getImagesByQuery(query) {
-  const response = await axios.get("https://pixabay.com/api/", {
+export async function getImagesByQuery(query, page = 1) {
+  const response = await axios.get(BASE_URL, {
     params: {
       key: API_KEY,
       q: query,
@@ -14,23 +14,10 @@ export async function getImagesByQuery(query) {
       orientation: "horizontal",
       safesearch: true,
       per_page: 15,
-      page: pageCount
+      page: page
     }
   });
-  return response.data.hits;
-}
-
-
-export function resetPage() {
-  pageCount = 1;
-}
-
-export function nextPage() {
-  pageCount++;
-}
-
-export function getPage() {
-  return pageCount
+  return response.data;
 }
 
 export function setQuery(query) {

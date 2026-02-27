@@ -6,7 +6,7 @@ let gallery = new SimpleLightbox('.gallery a', {
   showCounter: true
 });
 
-function createGallery(images) {
+export function createGallery(images) {
   const galleryContainer = document.querySelector(".gallery");
 
   const markup = images
@@ -41,38 +41,27 @@ function createGallery(images) {
   gallery.refresh();
 }
 
-function clearGallery() {
+export function clearGallery() {
   const galleryContainer = document.querySelector(".gallery");
   galleryContainer.innerHTML = "";
 }
 
-function showLoader() {
+export function showLoader() {
   const loader = document.querySelector(".loader");
   loader.classList.add("is-loading");
 }
 
-function hideLoader() {
+export function hideLoader() {
   const loader = document.querySelector(".loader");
   loader.classList.remove("is-loading");
 }
 
-function showLoadMoreButton() {
+export function showLoadMoreButton() {
   const loadMore = document.querySelector(".loadMore");
   loadMore.classList.remove("hidden");
 }
 
-function hideLoadMoreButton() {
+export function hideLoadMoreButton() {
   const loadMore = document.querySelector(".loadMore");
   loadMore.classList.add("hidden");
 }
-
-const render = {
-  createGallery,
-  clearGallery,
-  showLoader,
-  hideLoader,
-  showLoadMoreButton,
-  hideLoadMoreButton
-}
-
-export default render;

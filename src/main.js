@@ -1,13 +1,16 @@
-import { getImagesByQuery, resetPage, nextPage, setQuery, getQuery } from "./js/pixabay-api.js";
-import render from "./js/render-functions.js";
+import { getImagesByQuery, setQuery, getQuery } from "./js/pixabay-api.js";
+import { createGallery, clearGallery, showLoader, hideLoader, showLoadMoreButton, hideLoadMoreButton } from "./js/render-functions.js";
 import iziToast from 'izitoast';
 
 let form = document.querySelector('.form');
 let loadMore = document.querySelector('.loadMore');
+let searchInput = document.querySelector('input[name="search-text"]');
+let currentPage = 1;
+let totalPages = 0;
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const query = document.querySelector('input').value.trim();
+  const query = searchInput.value.trim();
 
   if (!query) {
     iziToast.error({
@@ -21,16 +24,16 @@ form.addEventListener('submit', async (event) => {
   }
 
   setQuery(query);
-  resetPage();
-  render.clearGallery();
-  render.hideLoadMoreButton();
-  render.showLoader();
+  currentPage = 1;
+  clearGallery();
+  hideLoadMoreButton();
+  showLoader();
 
   try {
-    const images = await getImagesByQuery(query);
-    render.hideLoader();
+    const data = await getImagesByQuery(query, currentPage);
+    hideLoader();
 
-    if (images.length === 0) {
+    if (data.hits.length === 0) {
       iziToast.error({
         title: 'No results',
         message: 'Sorry, there are no images matching your search query. Please, try again!',
@@ -42,12 +45,22 @@ form.addEventListener('submit', async (event) => {
       return;
     }
 
-    render.createGallery(images);
-    if (images.length === 15) {
-      render.showLoadMoreButton();
+    totalPages = Math.ceil(data.totalHits / 15);
+    createGallery(data.hits);
+
+    if (currentPage < totalPages) {
+      showLoadMoreButton();
+    } else if (data.hits.length > 0) {
+      iziToast.info({
+        title: 'End of results',
+        message: "We're sorry, but you've reached the end of search results.",
+        titleColor: "#fff",
+        messageColor: "#fff",
+        position: 'topRight'
+      });
     }
   } catch (error) {
-    render.hideLoader();
+    hideLoader();
     iziToast.error({
       title: 'Error',
       message: 'Failed to fetch images. Please try again.',
@@ -60,18 +73,28 @@ form.addEventListener('submit', async (event) => {
 });
 
 loadMore.addEventListener('click', async () => {
-  nextPage();
+  currentPage++;
   const query = getQuery();
 
-  render.showLoader();
+  hideLoadMoreButton();
+  showLoader();
 
   try {
-    const images = await getImagesByQuery(query);
-    render.hideLoader();
-    render.createGallery(images);
+    const data = await getImagesByQuery(query, currentPage);
+    hideLoader();
+    createGallery(data.hits);
 
-    if (images.length < 15) {
-      render.hideLoadMoreButton();
+    // Scroll to gallery
+    const firstPhoto = document.querySelector('.photo-card');
+    const photoHeight = firstPhoto.getBoundingClientRect().height;
+    window.scrollBy({
+      top: photoHeight * 2,
+      behavior: 'smooth'
+    });
+
+    if (currentPage < totalPages) {
+      showLoadMoreButton();
+    } else {
       iziToast.info({
         title: 'End of results',
         message: "We're sorry, but you've reached the end of search results.",
@@ -81,7 +104,8 @@ loadMore.addEventListener('click', async () => {
       });
     }
   } catch (error) {
-    render.hideLoader();
+    hideLoader();
+    showLoadMoreButton();
     iziToast.error({
       title: 'Error',
       message: 'Failed to fetch images. Please try again.',
